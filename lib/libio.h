@@ -162,7 +162,7 @@ char* char_cat(char* s1, char* s2);
  * This function returns a char pointer
  * and requires two char input pointers.
  */
-char* charDyn_cat(char* s1, char* s2, int ls1, int ls2);
+char* charDyn_cat(char* s1, char* s2, int ls1);
 // ######################################
 
 /* cmp_str function

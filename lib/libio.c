@@ -17,11 +17,11 @@ void assert_memory(bool expression) {
 }
 
 
-char* load_file(char* const filename) {
+char* load_file(char* filename) {
 	
 	printf("Opening %s...\n", filename);
-	long unsigned int buf_inc = BUFFER; // Buffer increment.
-	long unsigned int idx = 0; // Index counter for data array.
+	int buf_inc = BUFFER; // Buffer increment.
+	int idx = 0; // Index counter for data array.
 	// File content will be stored in this array.
 	char* data = (char*) malloc (sizeof(char) * buf_inc);
 	char line[BUFFER]; // Char array of BUFFER size to store file lines.
@@ -35,7 +35,7 @@ char* load_file(char* const filename) {
 
 			if (idx == buf_inc) {
 				// If buf_inc equals idx, increas buf_inc by BUFFER.
-				buf_inc = buf_inc + BUFFER;
+				buf_inc = buf_inc * 2;
 				// Increase dynamic memory of data array.
 				data = realloc(data, sizeof(char) * buf_inc);
 			}
@@ -51,7 +51,17 @@ char* load_file(char* const filename) {
 			}
 		}
 	}
-	data[idx] = END_OF_CHR_ARRAY;
+	if (idx == buf_inc) {
+
+		buf_inc = buf_inc + 1;
+		data = realloc(data, sizeof(*data) * buf_inc);
+		data [idx] = END_OF_CHR_ARRAY;
+
+	}
+	else {
+		data[idx] = END_OF_CHR_ARRAY;
+	}
+
 	//free(FHIN);
 	// When I use fclose, in char_cat function at
 	// malloc assignment occurs a rare behavior.
@@ -62,7 +72,7 @@ char* load_file(char* const filename) {
 	// Quite opposite, when I use free, this error does
 	// not occur but the program never ends.
 	// "WHY IS IT SO COMPLEX!"
-	//fclose(FHIN);
+	fclose(FHIN);
 	return data;
 }
 
@@ -254,8 +264,8 @@ SEQ** load_seqs(char* data, char* mol, char delimiter) {
 				container[container_counter-1] -> sequence = \
 							charDyn_cat(container[container_counter-1] -> sequence, \
 								tmp_line, \
-								len_seq - len_tmp_line, \
-								len_tmp_line);
+								len_seq - len_tmp_line \
+								);
 				tmp_line = NULL;
 			}
 		}
@@ -289,7 +299,7 @@ SEQ** split_genome(SEQ** container, int size, int step) {
 	int cont_i; // Input sequences container counter.
 	int spli_i; // Split sequences container counter.
 	int buf_inc; // BUFFER increments.
-	char** tmp_seqs; // Holds sequences.
+	char** tmp_seqs = NULL; // Holds sequences.
 	int tseq_i; // Counter for tmp_seqs.
 	int num_of_frags; // Number of expected fragments after split_by_window.
 	int buffer_header_len; // Buffer header length.
@@ -311,6 +321,7 @@ SEQ** split_genome(SEQ** container, int size, int step) {
 		tmp_seqs = (char**) malloc (sizeof(char*) * num_of_frags);
 
 		// Returns the split sequences of size "size" at each "step" step.
+
 		tmp_seqs = split_by_window(\
 				container[cont_i] -> sequence, \
 				num_of_frags, \
@@ -332,8 +343,7 @@ SEQ** split_genome(SEQ** container, int size, int step) {
 			split_seqs[spli_i] = (SEQ*) malloc (sizeof(SEQ));
 			split_seqs[spli_i] -> type = "DNA";
 
-			buffer_header_len = 27 \
-					    + sizeof(char);
+			buffer_header_len = 30;
 
 			buffer_header = (char*) malloc (sizeof(char) * buffer_header_len);
 			
@@ -350,10 +360,12 @@ SEQ** split_genome(SEQ** container, int size, int step) {
 
 			// spli_i counter update
 			spli_i++;
+			buffer_header = NULL;
 
 		}
 		// counter update
 		cont_i++;
+		tmp_seqs = NULL;
 	}
 	if (spli_i >= buf_inc) {
 
@@ -379,18 +391,18 @@ char** split_by_window(char* sequence, int num_of_frags, int seq_len, int size, 
 	int start = 0;
 	int end = size;
 	int fi = 0; // fragments counter.
-	char** fragments = (char**) malloc (sizeof(char*) * num_of_frags);
+	char** fragments = (char**) malloc (sizeof(char*) * num_of_frags + 1);
 
 	while (start < seq_len) {
 
-		fragments[fi] = (char*) malloc (sizeof(char) * (size+1));
+		//fragments[fi] = (char*) malloc (sizeof(char) * (size+1));
 		fragments[fi] = subseq(sequence, start, end);
 		start = start + step;
 		end = start + size;
 		fi++;
 
 	}
-
+	fragments[fi] = END_OF_CHR_ARRAY;
 	return fragments;
 }
 
@@ -537,7 +549,7 @@ char* char_cat(char* s1, char* s2) {
 
 }
 
-char* charDyn_cat(char* s1, char* s2, int ls1, int ls2) {
+char* charDyn_cat(char* s1, char* s2, int ls1) {
 	
 	int i; // While loop counter.
 	i = 0;
