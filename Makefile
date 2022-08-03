@@ -1,8 +1,12 @@
 GCC=gcc
-FLAGS=-g -Wall -lm --std=c99 -O2
+FLAGS=-g -Wall -Wextra -lm --std=c99
 INSTALL_PATH=/usr/bin
+PWD=`pwd`
 
 install: build/manager
+	@ln -s $(PWD)/build/manager $(INSTALL_PATH)/manager
+	@ln -s $(PWD)/scripts/format_db.sh $(INSTALL_PATH)/format_db
+	@ln -s $(PWD)/scripts/not_alike.sh $(INSTALL_PATH)/not_alike
 
 build: build/manager
 
